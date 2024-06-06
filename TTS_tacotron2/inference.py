@@ -1,11 +1,3 @@
-"""
-2021 JUL 01
-
-`python inference.py \
-    -t ./tacotron2/1outdir/tc2_90000.ckpt \
-    -w ./waveglow/3checkpoints/wg_334000.ckpt`
-"""
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -61,6 +53,7 @@ if __name__ == "__main__":
     audio_prefix = tc2_num + "_" + wg_num
 
     texts = [
+        "팀 포테이토의 티티에스 모델을 인용하고 있다."
         "실종 당시 회색 후드티, 남색 바지, 검은색 가방 등을 착용하고 있었다.",
         "프란치스코 교황이 방북 의사를 거듭 명확히 표명, 기대감이 향하는 모습이다.",
         "고객님, 박병호 님의 성함으로 예약 확인이 되지 않았습니다.",
