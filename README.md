@@ -6,7 +6,7 @@
 ## ⚙️ 주요 기능 ⚙️
 
 #### 🔸 음성 생성 (Text to Speech)
-> generate_voice(text)
+> generate_voice_tacotron2(text)
 > 
 > 텍스트를 받아 해당 텍스트의 음성 생성 후 base64 인코딩
   
