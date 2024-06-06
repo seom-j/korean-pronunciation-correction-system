@@ -10,22 +10,22 @@
 
 ## ⚙️ 모델 inference 방법 ⚙️
 
-1. 필요한 패키지 설치
+#### 🔸 필요한 패키지 설치
 > pip install -r requirements.txt
-
-<br/><br/>
-
-2. inference 파일 수정
-> inference.py 안의 문장 목록에 원하는 문장 써넣기
-
-<br/><br/>
-
-3. 모델 체크포인트를 활용한 음성 생성
-> 여성 청년 목소리 합성
-> python inference.py -t ckpt/tc2_ckpt_w_02/tc2_130000.ckpt -w ckpt/wg_ckpt_w_02/wg_390000.ckpt
 
 <br/>
 
+#### 🔸 inference 파일 수정
+> inference.py 안의 문장 목록에 원하는 문장 써넣기
+
+<br/>
+
+#### 🔸 모델 체크포인트를 활용한 음성 생성
+> 여성 청년 목소리 합성
+> 
+> python inference.py -t ckpt/tc2_ckpt_w_02/tc2_130000.ckpt -w ckpt/wg_ckpt_w_02/wg_390000.ckpt
+
 > 남성 청년 목소리 합성
+> 
 > python inference.py -t ckpt/tc2_ckpt_m_02/tc2_130000.ckpt -w ckpt/wg_ckpt_m_02/wg_390000.ckpt
 
