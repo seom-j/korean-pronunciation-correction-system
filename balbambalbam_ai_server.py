@@ -1,3 +1,4 @@
+
 # -------------------------- #
 # ------- import lib ------- #
 # -------------------------- #
@@ -23,8 +24,18 @@ import playsound
 import requests
 from time import sleep
 import re
+import soundfile as sf
+import torch
+from io import BytesIO
+import sys
 
+sys.path.append('./waveglow/')
+sys.path.append('./tacotron2/')
 
+from tacotron2.hparams import create_hparams
+from tacotron2.model import Tacotron2
+from tacotron2.text import text_to_sequence
+from waveglow.denoiser import Denoiser
 
 
 # -------------------------- #
@@ -33,31 +44,74 @@ import re
 
 ## here is the api key set (secret key)
 
+
 # -------------------------- #
 # --------- method --------- #
 # -------------------------- #
 
 
 # called by <ai/voice>
-# generate_voice (text -TTS-> voice -> base64 String)
-# using personal pkl, so it is not open source
-# so we replace it with gTTS
-def generate_voice(text):
-    tts = gTTS(text=text, lang='ko', tld='co.kr')
-    mp3_data = io.BytesIO()
-    tts.write_to_fp(mp3_data)
-    mp3_data.seek(0)
-    
-    mp3_audio = AudioSegment.from_mp3(mp3_data)
-    wav_data = io.BytesIO()
-    mp3_audio.export(wav_data, format="wav")
-    wav_data.seek(0)
-    
-    base64_encoded_data = base64.b64encode(wav_data.read())
-    return base64_encoded_data.decode('utf-8')
+# generate_voice_tacotron2 (text -TTS-> voice -> base64 String)
+# + load tacotron2 & waveglow checkpoint : load_tacotron2_checkpoint, load_waveglow_checkpoint
+def load_tacotron2_checkpoint(checkpoint_path):
+    hparams = create_hparams()
+    model = Tacotron2(hparams).cuda()
+    model.load_state_dict(torch.load(checkpoint_path)['state_dict'])
+    model.eval()
+    return model
 
-def generate_voice_using_tacotron2(gender, age, text):
-    # here is the code for Tacotron2
+def load_waveglow_checkpoint(checkpoint_path):
+    waveglow = torch.load(checkpoint_path)['model']
+    waveglow.cuda().eval()
+    for k in waveglow.convinv:
+        k.float()
+    denoiser = Denoiser(waveglow)
+    return waveglow, denoiser
+
+def generate_voice_tacotron2(gender, age, text):
+    if gender == 1:
+        if age <= 14:
+            tacotron2_ckpt = 'ckpt/tc2_ckpt_w_01/tc2_130000.ckpt'
+            waveglow_ckpt = 'ckpt/wg_ckpt_w_01/wg_390000.ckpt'
+        elif age <= 40:
+            tacotron2_ckpt = 'ckpt/tc2_ckpt_w_02/tc2_130000.ckpt'
+            waveglow_ckpt = 'ckpt/wg_ckpt_w_02/wg_390000.ckpt'
+        else:
+            tacotron2_ckpt = 'ckpt/tc2_ckpt_w_03/tc2_100000.ckpt'
+            waveglow_ckpt = 'ckpt/wg_ckpt_w_03/wg_350000.ckpt'
+    elif gender == 0:
+        if age <= 14:
+            tacotron2_ckpt = 'ckpt/tc2_ckpt_m_01/tc2_100000.ckpt'
+            waveglow_ckpt = 'ckpt/wg_ckpt_m_01/wg_350000.ckpt'
+        elif age <= 40:
+            tacotron2_ckpt = 'ckpt/tc2_ckpt_m_02/tc2_130000.ckpt'
+            waveglow_ckpt = 'ckpt/wg_ckpt_m_02/wg_390000.ckpt'
+        else:
+            tacotron2_ckpt = 'ckpt/tc2_ckpt_m_03/tc2_100000.ckpt'
+            waveglow_ckpt = 'ckpt/wg_ckpt_m_03/wg_350000.ckpt'
+    else:
+        tacotron2_ckpt = 'ckpt/tc2_ckpt_w_02/tc2_130000.ckpt'
+        waveglow_ckpt = 'ckpt/wg_ckpt_w_02/wg_390000.ckpt'
+
+    tacotron2_model = load_tacotron2_checkpoint(tacotron2_ckpt)
+    waveglow_model, denoiser = load_waveglow_checkpoint(waveglow_ckpt)
+
+    sequence = np.array(text_to_sequence(text, ['hangul_cleaners']))[None, :]
+    sequence = torch.autograd.Variable(torch.from_numpy(sequence)).cuda().long()
+
+    with torch.no_grad():
+        mel_outputs, mel_outputs_postnet, _, alignments = tacotron2_model.inference(sequence)
+
+    with torch.no_grad():
+        audio = waveglow_model.infer(mel_outputs_postnet, sigma=0.666)
+        audio_denoised = denoiser(audio, strength=0.01)[:, 0]
+
+    audio_buffer = BytesIO()
+    sf.write(audio_buffer, audio_denoised.cpu().numpy().T, 22050, format='WAV')
+    audio_buffer.seek(0)
+    
+    correct_audio = base64.b64encode(audio_buffer.read()).decode('utf-8')
+
     return correct_audio
 
 # called by <ai/feedback> & <ai/test>
@@ -410,8 +464,7 @@ def get_voice_request():
     
     # generate voice
     try : 
-        correct_audio = generate_voice(text)
-        # correct_audio = generate_voice_using_tacotron2(gender, age, text)
+        correct_audio = generate_voice_tacotron2(gender, age, text)
     except Exception as e:
         print("failed to generate voice (TTS)")
         return "failed to generate voice (TTS)", 500
