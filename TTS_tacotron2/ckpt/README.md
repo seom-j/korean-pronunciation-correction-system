@@ -5,7 +5,7 @@
 > 성별, 나이대를 기준으로 분류한 6개의 tacotron2 체크포인트, 6개의 waveglow 체크포인트 존재
 
 #### 🔸 구글 드라이브 업로드를 통한 공유
-> [🗃️🗃️🗃️🗃️](https://drive.google.com/drive/folders/1xmlW6ffyzoIqUxQ7EovY91d3INUNbo7a?usp=sharing)
+> [🗃️🗃️🗃️🗃️](https://drive.google.com/drive/folders/1tfJCIc1seFQHWCp-hRZiq-phZnobZq-C?usp=sharing)
 >
 > 용량 문제로 인한 구글 드라이브 공유 수행 (위 이모지 클릭)
 >
