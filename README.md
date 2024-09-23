@@ -10,7 +10,7 @@ balbambalbam : korean-pronunciation-correction-system
 ## 🏆 프로젝트 수상
 ✨ 세종대학교 창의설계경진대회 대상 ✨ 
 
-✨ 세종대학교 2024 컴퓨터공학과 학술제 2위 ✨ 
+✨ 세종대학교 2024 컴퓨터공학과 학술제 우수상 ✨ 
 
 <br/><br/>
 
